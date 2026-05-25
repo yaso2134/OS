@@ -1,8 +1,8 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, AttachmentBuilder } = require('discord.js');
 const express = require('express');
 const app = express();
 
-app.get('/', (req, res) => res.send('البوت الأساسي شغال ومحدث وضد التهنيج وتم ربط رابط الخط بنجاح!'));
+app.get('/', (req, res) => res.send('البوت الأساسي شغال 100% وتم ضبط إرسال الخط كملف نظيف!'));
 app.listen(3000);
 
 const client = new Client({
@@ -14,7 +14,7 @@ const client = new Client({
     ]
 });
 
-// تم وضع رابط صورتك هنا مباشرة ليعمل كخط فاخر بالسيرفر
+// رابط الصورة الخاص بك
 const lineImageURL = 'https://cdn.discordapp.com/attachments/1507997898783068210/1508458186619752589/5MQGz1n7.webp?ex=6a159ca9&is=6a144b29&hm=e2289d5dfc472df69654ab380738b814450de34a56760a67d77159ffbc8e641f&';
 
 const commands = [
@@ -45,10 +45,8 @@ const commands = [
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 ].map(command => command.toJSON());
 
-// قائمة الشتائم القديمة كاملة لحماية الشات
 const badWords = ['كسمك', 'شرموط', 'كسختك', 'عرص', 'معرص', 'متناك', 'يلعن ميتين امك', 'كلزق', 'تفو', 'امك', 'ابوك', 'خنيث', 'قحبة', 'منيوك'];
 
-// قائمة الردود التلقائية القديمة كاملة
 const autoResponses = {
     'هلا': 'هلا بك يا غالي منور السيرفر! ✨',
     'h': 'Hello! 🤍',
@@ -74,8 +72,11 @@ client.on('interactionCreate', async interaction => {
     try {
         if (commandName === 'ping') return await interaction.reply('بونج! 🏓');
         
-        // يرسل الخط الجديد (رابط الصورة المباشر)
-        if (commandName === 'line') return await interaction.reply(lineImageURL);
+        // إرسال الخط عبر السلاش بشكل نظيف
+        if (commandName === 'line') {
+            const file = new AttachmentBuilder(lineImageURL, { name: 'line.webp' });
+            return await interaction.reply({ files: [file] });
+        }
         
         if (commandName === 'prices') return await interaction.reply(`📊 **قائمة أسعار الإعلانات في السيرفر:**\n\n📢 **ارسال للكل برود:** 20 ｍ\n🟢 **ارسال برود الاونلاين فقط:** 10 ｍ\n🔔 **اعلان ب منشن هير:** 1 ｍ`);
         
@@ -166,7 +167,6 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     const msg = message.content.trim().toLowerCase();
     
-    // نظام كشف وحذف الشتائم
     const hasBadWord = badWords.some(word => msg.includes(word));
     if (hasBadWord) {
         try {
@@ -177,8 +177,11 @@ client.on('messageCreate', async (message) => {
         return;
     }
     
-    // يرسل الخط الجديد عند كتابة كلمة "خط" بالشات العادي
-    if (msg === 'خط') return message.reply(lineImageURL);
+    // إرسال الخط عند كتابة كلمة "خط" العادية كملف مرفق نظيف لمرة واحدة فقط
+    if (msg === 'خط') {
+        const file = new AttachmentBuilder(lineImageURL, { name: 'line.webp' });
+        return message.channel.send({ files: [file] });
+    }
     
     if (msg === 'اسعار الاعلانات') return message.reply(`📊 **قائمة أسعار الإعلانات في السيرفر:**\n\n📢 **ارسال للكل برود:** 20 ｍ\n🟢 **ارسال برود الاونلاين فقط:** 10 ｍ\n🔔 **اعلان ب منشن هير:** 1 ｍ`);
     if (msg.includes('السلام عليكم') || msg === 'للسلام') return message.reply('وعليكم السلام ورحمة الله وبركاته، منور! ❤️');
@@ -186,4 +189,4 @@ client.on('messageCreate', async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-    
+                
