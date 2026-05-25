@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express');
 const app = express();
 
-app.get('/', (req, res) => res.send('البوت شغال 24 ساعة!'));
+app.get('/', (req, res) => res.send('البوت شغال 24 ساعة ومستقر!'));
 app.listen(3000);
 
 const client = new Client({
@@ -13,68 +13,83 @@ const client = new Client({
     ]
 });
 
-// قائمة الشتايم اللي البوت هيمسحها (تقدر تزود عليها)
-const badWords = ['كسمك', 'شرموط', 'كسختك', 'عرص', 'معرص', 'متناك', 'يلعن ميتين امك', 'كلزق'];
-
-// نظام الردود التلقائية اللي كانت عندك في الفيديو
-const autoResponses = {
-    'هلا': 'هلا بك يا غالي منور السيرفر! ✨',
-    'h': 'Hello! 🤍',
-    'اسعار الاعلانات': 'سيتم تزويدك بأسعار الإعلانات قريباً، انتظر الدعم الإداري.',
-    '.': 'منور بنقطتك الجميلة. 👑',
-    'تفو': 'عيب يا محترم، خلي أسلوبك أرقى من كده. 😡',
-    'برا': 'اطردوه برة السيرفر بسرعة! 🚪🏃‍♂️',
-    'انبان': 'تم فك الباند بنجاح (أمر وهمي للتسلية).',
-    'بوت': 'لبيه! أنا في الخدمة، اؤمرني؟ 🤖',
-    'خط': '▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬',
-    'للمشي': 'تروح وترجع بالسلامة يا غالي. 👣',
-    'برب': 'تيت، لا تتأخر علينا يا بطل! 👋',
-    'للسلام': 'وعليكم السلام ورحمة الله وبركاته، أهلاً بك! 🌹',
-    'السلام عليكم': 'وعليكم السلام ورحمة الله وبركاته، منور السيرفر! ❤️',
-    'للسلام 2': 'سلام عليكم، أهلاً وسهلاً! 👋'
-};
+// قائمة الشتايم
+const badWords = ['كسمك', 'شرموط', 'كسختك', 'عرص', 'معرص', 'متناك', 'ميتين امك', 'كلزق'];
 
 client.on('ready', () => {
     console.log(`تم تشغيل البوت بنجاح باسم: ${client.user.tag}`);
 });
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot) return; // قراءة رسائل الأعضاء فقط
+    if (message.author.bot) return;
 
-    const msgContent = message.content.trim();
+    // تنظيف النص من المسافات الزايدة
+    const msg = message.content.trim().toLowerCase();
 
-    // 1. نظام حماية ومنع الشتائم
-    const hasBadWord = badWords.some(word => msgContent.includes(word));
+    // 1. نظام الحماية ومنع الشتائم (يبحث في النص كله)
+    const hasBadWord = badWords.some(word => msg.includes(word));
     if (hasBadWord) {
         try {
-            await message.delete(); // مسح الشتيمة فوراً
-            const warning = await message.channel.send(`⚠️ عيب يا ${message.author}، ممنوع الشتائم في السيرفر!`);
-            setTimeout(() => warning.delete().catch(() => null), 5000); // مسح التنبيه بعد 5 ثواني
+            await message.delete();
+            const warning = await message.channel.send(`⚠️ عيب يا ${message.author}، ممنوع الغلط في السيرفر!`);
+            setTimeout(() => warning.delete().catch(() => null), 4000);
         } catch (err) {
-            console.log('نقص صلاحيات لمسح الرسالة:', err);
+            console.log('نقص صلاحيات مسح الرسائل');
         }
         return;
     }
 
-    // 2. نظام الردود التلقائية
-    if (autoResponses[msgContent]) {
-        return message.reply(autoResponses[msgContent]);
+    // 2. نظام الردود الذكي (بيقرأ الكلمة حتى لو معاها مسافات)
+    if (msg.includes('السلام عليكم') || msg === 'للسلام' || msg === 'للسلام 2') {
+        return message.reply('وعليكم السلام ورحمة الله وبركاته، منور السيرفر يا غالي! ❤️');
+    }
+    if (msg === 'هلا') {
+        return message.reply('هلا بك يا حُب منور! ✨');
+    }
+    if (msg === 'h') {
+        return message.reply('Hello! 🤍');
+    }
+    if (msg.includes('اسعار الاعلانات')) {
+        return message.reply('سيتم تزويدك بأسعار الإعلانات قريباً، انتظر الدعم الإداري.');
+    }
+    if (msg === '.') {
+        return message.reply('منور بنقطتك الجميلة. 👑');
+    }
+    if (msg === 'تفو') {
+        return message.reply('عيب يا محترم، خلي أسلوبك أرقى من كده. 😡');
+    }
+    if (msg === 'برا') {
+        return message.reply('اطردوه برة السيرفر بسرعة! 🚪🏃‍♂️');
+    }
+    if (msg === 'انبان') {
+        return message.reply('تم فك الباند بنجاح (أمر وهمي للتسلية).');
+    }
+    if (msg === 'بوت') {
+        return message.reply('لبيه! أنا في الخدمة، اؤمرني؟ 🤖');
+    }
+    if (msg === 'خط') {
+        return message.reply('▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
+    }
+    if (msg === 'للمشي' || msg === 'برب') {
+        return message.reply('تروح وترجع بالسلامة، لا تتأخر علينا! 👋');
+    }
+    if (msg === 'بنج') {
+        return message.reply('بونج! 🏓');
     }
 
-    // 3. أمر مسح الرسائل (مسح 5 أو مسح 10)
-    if (msgContent === 'مسح 5*') {
-        if (!message.member.permissions.has('ManageMessages')) return message.reply('ما عندك صلاحية إدارة الرسائل! ❌');
-        await message.channel.bulkDelete(6, true).catch(() => null);
-    }
-    
-    if (msgContent === 'مسح 10*') {
-        if (!message.member.permissions.has('ManageMessages')) return message.reply('ما عندك صلاحية إدارة الرسائل! ❌');
-        await message.channel.bulkDelete(11, true).catch(() => null);
-    }
+    // 3. أوامر المسح (سهلتها لك: اكتب مسح 5 أو مسح 10 علطول)
+    if (msg.startsWith('مسح ')) {
+        if (!message.member.permissions.has('ManageMessages')) {
+            return message.reply('ما عندك صلاحية إدارة الرسائل! ❌');
+        }
+        
+        const args = msg.split(' ');
+        const amount = parseInt(args[1]);
 
-    // أمر فحص التشغيل القديم
-    if (msgContent === 'بنج') {
-        message.reply('بونج! 🏓');
+        if (!isNaN(amount) && amount > 0 && amount <= 100) {
+            // نمسح رسالة الأمر + العدد المطلوب
+            await message.channel.bulkDelete(amount + 1, true).catch(() => null);
+        }
     }
 });
 
