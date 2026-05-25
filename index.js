@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require
 const express = require('express');
 const app = express();
 
-app.get('/', (req, res) => res.send('البوت شغال بـ السلاش، الردود، والمنظف!'));
+app.get('/', (req, res) => res.send('البوت جاهز ومحدث بأوامر الإعلانات الجديدة!'));
 app.listen(3000);
 
 const client = new Client({
@@ -13,11 +13,14 @@ const client = new Client({
     ]
 });
 
-// 1. تعريف أوامر السلاش (اللي بتظهر في القائمة)
+// 1. تعريف أوامر السلاش (اللي بتظهر في قائمة /)
 const commands = [
     new SlashCommandBuilder().setName('ping').setDescription('فحص سرعة اتصال البوت'),
     new SlashCommandBuilder().setName('line').setDescription('خط فاصل جميل للشات'),
-    new SlashCommandBuilder().setName('prices').setDescription('عرض أسعار الإعلانات'),
+    new SlashCommandBuilder().setName('prices').setDescription('عرض أسعار الإعلانات بالتفصيل'),
+    new SlashCommandBuilder().setName('bc-all').setDescription('أمر إعلان برودكاست للكل'),
+    new SlashCommandBuilder().setName('bc-online').setDescription('أمر إعلان برودكاست للأونلاين فقط'),
+    new SlashCommandBuilder().setName('bc-here').setDescription('أمر إعلان مع منشن هير'),
     new SlashCommandBuilder().setName('clear').setDescription('مسح عدد معين من الرسائل')
         .addIntegerOption(option => option.setName('عدد').setDescription('عدد الرسائل المراد مسحها').setRequired(true))
 ].map(command => command.toJSON());
@@ -44,18 +47,18 @@ client.on('ready', async () => {
     
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
-        console.log('جاري تسجيل أوامر السلاش...');
+        console.log('جاري تسجيل أوامر السلاش المحدثة...');
         await rest.put(
             Routes.applicationCommands(client.user.id),
             { body: commands }
         );
-        console.log('تم تسجيل أوامر السلاش بنجاح!');
+        console.log('تم تسجيل جميع الأوامر بنجاح!');
     } catch (error) {
         console.error(error);
     }
 });
 
-// 3. تشغيل أوامر السلاش (/)
+// 3. تشغيل وتحديد ردود أوامر السلاش (/)
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -63,7 +66,21 @@ client.on('interactionCreate', async interaction => {
 
     if (commandName === 'ping') await interaction.reply('بونج! 🏓');
     if (commandName === 'line') await interaction.reply('▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
-    if (commandName === 'prices') await interaction.reply('سيتم تزويدك بأسعار الإعلانات قريباً، انتظر الدعم الإداري.');
+    
+    // قائمة أسعار الإعلانات الجديدة اللي طلبتها
+    if (commandName === 'prices') {
+        const pricesEmbed = 
+            `📊 **قائمة أسعار الإعلانات في السيرفر:**\n\n` +
+            `📢 **ارسال للكل برود:** 20 ｍ\n` +
+            `🟢 **ارسال برود الاونلاين فقط:** 10 ｍ\n` +
+            `🔔 **اعلان ب منشن هير:** 1 ｍ`;
+        await interaction.reply(pricesEmbed);
+    }
+
+    // الردود الخاصة بأوامر البرودكاست الجديدة
+    if (commandName === 'bc-all') await interaction.reply('📢 **ارسال للكل برود 20 ｍ**');
+    if (commandName === 'bc-online') await interaction.reply('🟢 **ارسال برود الاونلاين فقط 10 ｍ**');
+    if (commandName === 'bc-here') await interaction.reply('🔔 **اعلان ب منشن هير 1 ｍ**');
 
     if (commandName === 'clear') {
         if (!interaction.member.permissions.has('ManageMessages')) {
@@ -79,7 +96,7 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// 4. نظام الردود العادية + منع الشتايم في الشات
+// 4. نظام الردود العادية + منع الشتايم في الشات العادي
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
