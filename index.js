@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuild
 const express = require('express');
 const app = express();
 
-app.get('/', (req, res) => res.send('البوت الأساسي شغال 100% وتم ضبط إرسال الخط كملف نظيف!'));
+app.get('/', (req, res) => res.send('البوت الأساسي شغال 100% وتم إصلاح الردود التلقائية والخط!'));
 app.listen(3000);
 
 const client = new Client({
@@ -14,7 +14,7 @@ const client = new Client({
     ]
 });
 
-// رابط الصورة الخاص بك
+// رابط الصورة الخاص بك للخط
 const lineImageURL = 'https://cdn.discordapp.com/attachments/1507997898783068210/1508458186619752589/5MQGz1n7.webp?ex=6a159ca9&is=6a144b29&hm=e2289d5dfc472df69654ab380738b814450de34a56760a67d77159ffbc8e641f&';
 
 const commands = [
@@ -45,8 +45,10 @@ const commands = [
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 ].map(command => command.toJSON());
 
+// قائمة الشتائم
 const badWords = ['كسمك', 'شرموط', 'كسختك', 'عرص', 'معرص', 'متناك', 'يلعن ميتين امك', 'كلزق', 'تفو', 'امك', 'ابوك', 'خنيث', 'قحبة', 'منيوك'];
 
+// قائمة الردود التلقائية المصلحة بالعربي
 const autoResponses = {
     'هلا': 'هلا بك يا غالي منور السيرفر! ✨',
     'h': 'Hello! 🤍',
@@ -72,7 +74,6 @@ client.on('interactionCreate', async interaction => {
     try {
         if (commandName === 'ping') return await interaction.reply('بونج! 🏓');
         
-        // إرسال الخط عبر السلاش بشكل نظيف
         if (commandName === 'line') {
             const file = new AttachmentBuilder(lineImageURL, { name: 'line.webp' });
             return await interaction.reply({ files: [file] });
@@ -165,9 +166,12 @@ client.on('interactionCreate', async interaction => {
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
-    const msg = message.content.trim().toLowerCase();
     
-    const hasBadWord = badWords.some(word => msg.includes(word));
+    // قراءة النص الأصلي بدون تعديل الحروف عشان العربي يلقط صح
+    const msg = message.content.trim();
+    
+    // حماية الشات من الشتائم
+    const hasBadWord = badWords.some(word => msg.toLowerCase().includes(word) || msg.includes(word));
     if (hasBadWord) {
         try {
             await message.delete();
@@ -177,16 +181,23 @@ client.on('messageCreate', async (message) => {
         return;
     }
     
-    // إرسال الخط عند كتابة كلمة "خط" العادية كملف مرفق نظيف لمرة واحدة فقط
+    // الرد على كلمة خط كملف مرفق نظيف لمرة واحدة
     if (msg === 'خط') {
         const file = new AttachmentBuilder(lineImageURL, { name: 'line.webp' });
         return message.channel.send({ files: [file] });
     }
     
-    if (msg === 'اسعار الاعلانات') return message.reply(`📊 **قائمة أسعار الإعلانات في السيرفر:**\n\n📢 **ارسال للكل برود:** 20 ｍ\n🟢 **ارسال برود الاونلاين فقط:** 10 ｍ\n🔔 **اعلان ب منشن هير:** 1 ｍ`);
-    if (msg.includes('السلام عليكم') || msg === 'للسلام') return message.reply('وعليكم السلام ورحمة الله وبركاته، منور! ❤️');
+    if (msg === 'اسعار الاعلانات' || msg === 'أسعار الإعلانات') {
+        return message.reply(`📊 **قائمة أسعار الإعلانات في السيرفر:**\n\n📢 **ارسال للكل برود:** 20 ｍ\n🟢 **ارسال برود الاونلاين فقط:** 10 ｍ\n🔔 **اعلان ب منشن هير:** 1 ｍ`);
+    }
+    
+    if (msg.includes('السلام عليكم') || msg === 'للسلام') {
+        return message.reply('وعليكم السلام ورحمة الله وبركاته، منور! ❤️');
+    }
+    
+    // فحص قائمة الردود التلقائية الأخرى
     if (autoResponses[msg]) return message.reply(autoResponses[msg]);
 });
 
 client.login(process.env.DISCORD_TOKEN);
-                
+    
